@@ -3,7 +3,7 @@ import path from "path";
 
 const writeConfig = (key: string, value: string) => {
   // Check if file exists
-  const p = path.join(__dirname, "./storage/config.json");
+  const p = path.join(__dirname, "../storage/config.json");
 
   existsSync(p) || writeFileSync(p, "{}");
 
