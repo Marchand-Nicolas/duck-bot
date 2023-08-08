@@ -67,6 +67,7 @@ const modals = modalFiles.map((file) =>
 
 // Command handler
 client.on("interactionCreate", async (interaction: Interaction) => {
+  if (interaction.guildId !== process.env.GUILD_ID) return;
   if (interaction.isCommand()) {
     const command = commands.find((c) => c.name === interaction.commandName);
 
