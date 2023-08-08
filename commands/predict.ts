@@ -4,10 +4,10 @@ import {
   CommandInteraction,
   ButtonStyle,
 } from "discord.js";
-import mysql from "mysql2/promise";
 import getDbOptions from "../utils/getDbOptions";
 import refreshPredictionMessage from "../utils/refreshPredictionMessage";
 import readConfig from "../utils/readConfig";
+import { createConnection } from "mysql2/promise";
 
 const predict = async (interaction: CommandInteraction) => {
   const predictionPrice = interaction.options.get("price")?.value;
@@ -24,7 +24,7 @@ const predict = async (interaction: CommandInteraction) => {
     return;
   }
 
-  const db = await mysql.createConnection(getDbOptions());
+  const db = await createConnection(getDbOptions());
   // Get current predictions
   const [rows] = await db.execute(
     "SELECT * FROM predictions WHERE started = 1 AND ENDED = 0"

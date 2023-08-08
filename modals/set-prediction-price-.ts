@@ -1,8 +1,8 @@
 import { ModalSubmitInteraction } from "discord.js";
-import mysql from "mysql2/promise";
 import getDbOptions from "../utils/getDbOptions";
 import getUserScore from "../utils/getUserScore";
 import refreshPredictionMessage from "../utils/refreshPredictionMessage";
+import { Connection, createConnection } from "mysql2/promise";
 
 const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
   const interactionId = interaction.customId;
@@ -22,7 +22,7 @@ const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
   // Support bigints
   options.supportBigNumbers = true;
   options.bigNumberStrings = true;
-  const db = await mysql.createConnection(options);
+  const db = await createConnection(options);
 
   // Get user predictions
   const [predictions] = await db.execute(
@@ -90,7 +90,7 @@ const addScore = async (
   userId: string,
   score: number,
   predictionId: number,
-  db: mysql.Connection
+  db: Connection
 ) => {
   await db.execute(
     "INSERT INTO user_scores (user_id, score, prediction_id) VALUES (?, ?, ?)",

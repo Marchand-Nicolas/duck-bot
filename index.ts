@@ -1,5 +1,5 @@
-import Discord, { Interaction, REST, Routes } from "discord.js";
-import fs from "fs";
+import { Client, Interaction, REST, Routes } from "discord.js";
+import * as fs from "fs";
 import startCron from "./cron";
 
 require("dotenv").config();
@@ -16,7 +16,7 @@ if (!clientId) {
   throw new Error("App ID is required");
 }
 
-const client = new Discord.Client({
+const client = new Client({
   intents: ["Guilds", "GuildMessages"],
 });
 client.login(token);

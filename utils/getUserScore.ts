@@ -1,8 +1,8 @@
-import mysql from "mysql2/promise";
+import { createConnection } from "mysql2/promise";
 import getDbOptions from "./getDbOptions";
 
 const getUserScore = async (userId: number) => {
-  const db = await mysql.createConnection(getDbOptions());
+  const db = await createConnection(getDbOptions());
 
   // Get user predictions
   const [predictions] = await db.execute(

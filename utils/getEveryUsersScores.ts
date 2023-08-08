@@ -1,4 +1,4 @@
-import mysql from "mysql2/promise";
+import { createConnection } from "mysql2/promise";
 import getDbOptions from "./getDbOptions";
 
 const getEveryUsersScore = async () => {
@@ -6,7 +6,7 @@ const getEveryUsersScore = async () => {
   // Support bigints
   options.supportBigNumbers = true;
   options.bigNumberStrings = true;
-  const db = await mysql.createConnection(options);
+  const db = await createConnection(options);
 
   // Get user predictions
   const [predictions] = await db.execute("SELECT * FROM user_scores");

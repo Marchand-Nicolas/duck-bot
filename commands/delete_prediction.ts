@@ -1,6 +1,6 @@
 import { CommandInteraction } from "discord.js";
-import mysql from "mysql2/promise";
 import getDbOptions from "../utils/getDbOptions";
+import { createConnection } from "mysql2/promise";
 
 const deletePrediction = async (interaction: CommandInteraction) => {
   if (typeof interaction.member?.permissions === "string") return;
@@ -15,7 +15,7 @@ const deletePrediction = async (interaction: CommandInteraction) => {
   const predictionId = interaction.options.get("prediction-id")
     ?.value as string;
 
-  const connection = await mysql.createConnection(getDbOptions());
+  const connection = await createConnection(getDbOptions());
 
   const [rows] = await connection.execute(
     `DELETE FROM predictions WHERE id = ?`,

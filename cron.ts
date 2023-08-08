@@ -1,7 +1,7 @@
 import { Client, TextChannel } from "discord.js";
-import mysql from "mysql2/promise";
 import getDbOptions from "./utils/getDbOptions";
 import readConfig from "./utils/readConfig";
+import { createConnection } from "mysql2/promise";
 
 const startCron = (client: Client) => {
   refresh(client);
@@ -9,7 +9,7 @@ const startCron = (client: Client) => {
 };
 
 const refresh = async (client: Client) => {
-  const connection = await mysql.createConnection(getDbOptions());
+  const connection = await createConnection(getDbOptions());
 
   const [rows, fields] = await connection.execute(
     "SELECT * FROM predictions WHERE ended = 0"

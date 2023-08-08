@@ -4,8 +4,8 @@ import {
   ButtonStyle,
   CommandInteraction,
 } from "discord.js";
-import mysql from "mysql2/promise";
 import getDbOptions from "../utils/getDbOptions";
+import { createConnection } from "mysql2/promise";
 
 const distributePoints = async (interaction: CommandInteraction) => {
   if (typeof interaction.member?.permissions === "string") return;
@@ -18,7 +18,7 @@ const distributePoints = async (interaction: CommandInteraction) => {
     return;
   }
 
-  const connection = await mysql.createConnection(getDbOptions());
+  const connection = await createConnection(getDbOptions());
 
   const [rows] = await connection.execute(
     `SELECT * FROM predictions WHERE price = 0 AND ended = 1 ORDER BY id DESC LIMIT 1;`

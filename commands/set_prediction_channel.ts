@@ -1,8 +1,4 @@
-import Discord, {
-  CommandInteraction,
-  Interaction,
-  TextChannel,
-} from "discord.js";
+import { ChannelType, CommandInteraction, TextChannel } from "discord.js";
 import writeConfig from "../utils/writeConfig";
 
 const setPredictionChannel = async (interaction: CommandInteraction) => {
@@ -24,7 +20,7 @@ const setPredictionChannel = async (interaction: CommandInteraction) => {
     return;
   }
   // Check the channel is a text channel
-  if (channel.type !== Discord.ChannelType.GuildText) {
+  if (channel.type !== ChannelType.GuildText) {
     await interaction.reply({
       content: "Channel must be a text channel",
       ephemeral: true,

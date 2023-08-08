@@ -1,7 +1,7 @@
 import { ButtonInteraction, TextChannel } from "discord.js";
-import mysql from "mysql2/promise";
 import getDbOptions from "../utils/getDbOptions";
 import readConfig from "../utils/readConfig";
+import { createConnection } from "mysql2/promise";
 
 const resetDb = async (interaction: ButtonInteraction) => {
   const config = readConfig();
@@ -28,7 +28,7 @@ const resetDb = async (interaction: ButtonInteraction) => {
     return;
   }
 
-  const connection = await mysql.createConnection(getDbOptions());
+  const connection = await createConnection(getDbOptions());
 
   await connection.execute("DELETE FROM predictions");
   await connection.execute("DELETE FROM user_predictions");

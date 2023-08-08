@@ -1,8 +1,8 @@
 import { Client, TextChannel } from "discord.js";
 import readConfig from "../utils/readConfig";
-import mysql from "mysql2/promise";
 import getDbOptions from "../utils/getDbOptions";
 import getEveryUsersScore from "./getEveryUsersScores";
+import { createConnection } from "mysql2/promise";
 
 const refreshPredictionMessage = async (client: Client) => {
   const config = readConfig();
@@ -28,7 +28,7 @@ const refreshPredictionMessage = async (client: Client) => {
   // Support bigints
   options.supportBigNumbers = true;
   options.bigNumberStrings = true;
-  const db = await mysql.createConnection(options);
+  const db = await createConnection(options);
 
   const [rows] = await db.execute(
     "SELECT * FROM predictions WHERE started = 1 AND ENDED = 0"
@@ -65,14 +65,16 @@ const refreshPredictionMessage = async (client: Client) => {
     embeds: [
       {
         title: "Leaderboard",
-        description: keys
-          .map((k) => `<@${k}>: ${scores[k]} points`)
-          .sort((a, b) => {
-            const aScore = parseInt(a.split(":")[1]);
-            const bScore = parseInt(b.split(":")[1]);
-            return bScore - aScore;
-          })
-          .join("\n"),
+        description: keys.length
+          ? keys
+              .map((k) => `<@${k}>: ${scores[k]} points`)
+              .sort((a, b) => {
+                const aScore = parseInt(a.split(":")[1]);
+                const bScore = parseInt(b.split(":")[1]);
+                return bScore - aScore;
+              })
+              .join("\n")
+          : "No scores yet",
       },
     ],
   });

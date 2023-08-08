@@ -1,13 +1,13 @@
-import fs from "fs";
+import { existsSync, writeFileSync, readFileSync } from "fs";
 
 const writeConfig = (key: string, value: string) => {
   // Check if file exists
   const path = "./storage/config.json";
 
-  fs.existsSync(path) || fs.writeFileSync(path, "{}");
+  existsSync(path) || writeFileSync(path, "{}");
 
   // Read file
-  const content = fs.readFileSync(path, "utf-8");
+  const content = readFileSync(path, "utf-8");
 
   // Parse file
   const config = JSON.parse(content);
@@ -16,7 +16,7 @@ const writeConfig = (key: string, value: string) => {
   config[key] = value;
 
   // Write config
-  fs.writeFileSync(path, JSON.stringify(config));
+  writeFileSync(path, JSON.stringify(config));
 };
 
 export default writeConfig;
