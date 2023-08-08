@@ -1,10 +1,6 @@
-import Discord, {
-  IntentsBitField,
-  Interaction,
-  REST,
-  Routes,
-} from "discord.js";
+import Discord, { Interaction, REST, Routes } from "discord.js";
 import fs from "fs";
+import startCron from "./cron";
 
 require("dotenv").config();
 
@@ -21,7 +17,7 @@ if (!clientId) {
 }
 
 const client = new Discord.Client({
-  intents: [],
+  intents: ["Guilds", "GuildMessages"],
 });
 client.login(token);
 
@@ -52,21 +48,58 @@ const rest = new REST({ version: "9" }).setToken(token);
   }
 })();
 
+const buttonFiles = fs
+  .readdirSync("./buttons")
+  .filter((file) => file.endsWith(".ts"));
+const buttons = buttonFiles.map((file) => require(`./buttons/${file}`));
+
+const modalFiles = fs
+  .readdirSync("./modals")
+  .filter((file) => file.endsWith(".ts"));
+const modals = modalFiles.map((file) => require(`./modals/${file}`));
+
 // Command handler
 client.on("interactionCreate", async (interaction: Interaction) => {
-  if (!interaction.isCommand()) return;
+  if (interaction.isCommand()) {
+    const command = commands.find((c) => c.name === interaction.commandName);
 
-  const command = commands.find((c) => c.name === interaction.commandName);
+    if (!command) return;
 
-  if (!command) return;
-
-  try {
-    await command.execute(interaction);
-  } catch (error) {
-    console.error(error);
-    await interaction.reply({
-      content: "There was an error while executing this command!",
-      ephemeral: true,
-    });
+    try {
+      await command.execute(interaction);
+    } catch (error) {
+      console.error(error);
+      await interaction.reply({
+        content: "There was an error while executing this command!",
+        ephemeral: true,
+      });
+    }
+  } else if (interaction.isButton()) {
+    for (let index = 0; index < buttonFiles.length; index++) {
+      const buttonName = buttonFiles[index].replace(".ts", "");
+      if (interaction.customId.startsWith(buttonName))
+        buttons[index](interaction);
+    }
+  } else if (interaction.isModalSubmit()) {
+    for (let index = 0; index < modalFiles.length; index++) {
+      const modalName = modalFiles[index].replace(".ts", "");
+      if (interaction.customId.startsWith(modalName))
+        modals[index](interaction);
+    }
   }
 });
+
+client.on("ready", () => {
+  // Start cron
+  startCron(client);
+});
+
+// Load events
+const eventsFiles = fs
+  .readdirSync("./events")
+  .filter((file) => file.endsWith(".ts"));
+const events = eventsFiles.map((file) => require(`./events/${file}`));
+for (let index = 0; index < eventsFiles.length; index++) {
+  const eventName = eventsFiles[index].replace(".ts", "");
+  client.on(eventName, events[index]);
+}

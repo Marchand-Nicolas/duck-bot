@@ -6,6 +6,15 @@ import Discord, {
 import writeConfig from "../utils/writeConfig";
 
 const setPredictionChannel = async (interaction: CommandInteraction) => {
+  if (typeof interaction.member?.permissions === "string") return;
+  if (!interaction.member?.permissions.has("Administrator")) {
+    await interaction.reply({
+      content:
+        "You don't have permission to use this command. To predict a duck price, use the /predict command",
+      ephemeral: true,
+    });
+    return;
+  }
   const channel = interaction.options.get("channel")?.channel as TextChannel;
   if (!channel) {
     await interaction.reply({
@@ -28,6 +37,7 @@ const setPredictionChannel = async (interaction: CommandInteraction) => {
   );
   await message.pin();
   writeConfig("predictionMessageId", message.id);
+  writeConfig("predictionChannelId", channel.id);
   await interaction.reply({
     content: `Prediction channel set to ${channel}`,
     ephemeral: true,
