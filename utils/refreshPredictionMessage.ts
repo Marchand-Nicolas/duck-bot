@@ -31,7 +31,7 @@ const refreshPredictionMessage = async (client: Client) => {
   const db = await createConnection(options);
 
   const [rows] = await db.execute(
-    "SELECT * FROM predictions WHERE started = 1 AND ENDED = 0"
+    "SELECT * FROM predictions WHERE started = 1 AND ended = 0"
   );
 
   if (!Array.isArray(rows)) return db.end();
