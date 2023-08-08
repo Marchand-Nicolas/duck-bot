@@ -25,7 +25,7 @@ client.login(token);
 // Load commands
 const commandFiles = fs
   .readdirSync(path.join(__dirname, "./commands"))
-  .filter((file) => file.endsWith(".ts"));
+  .filter((file) => file.endsWith(".ts") || file.endsWith(".js"));
 const commands = commandFiles.map((file) =>
   require(path.join(__dirname, `./commands/${file}`))
 );
@@ -53,14 +53,14 @@ const rest = new REST({ version: "9" }).setToken(token);
 
 const buttonFiles = fs
   .readdirSync(path.join(__dirname, "./buttons"))
-  .filter((file) => file.endsWith(".ts"));
+  .filter((file) => file.endsWith(".ts") || file.endsWith(".js"));
 const buttons = buttonFiles.map((file) =>
   require(path.join(__dirname, `./buttons/${file}`))
 );
 
 const modalFiles = fs
   .readdirSync(path.join(__dirname, "./modals"))
-  .filter((file) => file.endsWith(".ts"));
+  .filter((file) => file.endsWith(".ts") || file.endsWith(".js"));
 const modals = modalFiles.map((file) =>
   require(path.join(__dirname, `./modals/${file}`))
 );
@@ -104,7 +104,7 @@ client.on("ready", () => {
 // Load events
 const eventsFiles = fs
   .readdirSync(path.join(__dirname, "./events"))
-  .filter((file) => file.endsWith(".ts"));
+  .filter((file) => file.endsWith(".ts") || file.endsWith(".js"));
 const events = eventsFiles.map((file) =>
   require(path.join(__dirname, `./events/${file}`))
 );
