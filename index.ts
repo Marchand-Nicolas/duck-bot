@@ -83,13 +83,15 @@ client.on("interactionCreate", async (interaction: Interaction) => {
     }
   } else if (interaction.isButton()) {
     for (let index = 0; index < buttonFiles.length; index++) {
-      const buttonName = buttonFiles[index].replace(".ts", "");
+      const buttonName = buttonFiles[index]
+        .replace(".ts", "")
+        .replace(".js", "");
       if (interaction.customId.startsWith(buttonName))
         buttons[index](interaction);
     }
   } else if (interaction.isModalSubmit()) {
     for (let index = 0; index < modalFiles.length; index++) {
-      const modalName = modalFiles[index].replace(".ts", "");
+      const modalName = modalFiles[index].replace(".ts", "").replace(".js", "");
       if (interaction.customId.startsWith(modalName))
         modals[index](interaction);
     }
@@ -109,7 +111,7 @@ const events = eventsFiles.map((file) =>
   require(path.join(__dirname, `./events/${file}`))
 );
 for (let index = 0; index < eventsFiles.length; index++) {
-  const eventName = eventsFiles[index].replace(".ts", "");
+  const eventName = eventsFiles[index].replace(".ts", "").replace(".js", "");
   console.log(`Registering event: ${eventName}`);
   client.on(eventName, events[index]);
 }
