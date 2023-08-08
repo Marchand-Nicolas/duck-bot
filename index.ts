@@ -1,6 +1,7 @@
 import { Client, Interaction, REST, Routes } from "discord.js";
 import * as fs from "fs";
 import startCron from "./cron";
+import path from "path";
 
 require("dotenv").config();
 
@@ -23,9 +24,11 @@ client.login(token);
 
 // Load commands
 const commandFiles = fs
-  .readdirSync("./commands")
+  .readdirSync(path.join(__dirname, "./commands"))
   .filter((file) => file.endsWith(".ts"));
-const commands = commandFiles.map((file) => require(`./commands/${file}`));
+const commands = commandFiles.map((file) =>
+  require(path.join(__dirname, `./commands/${file}`))
+);
 
 // Register commands
 const rest = new REST({ version: "9" }).setToken(token);
@@ -49,14 +52,18 @@ const rest = new REST({ version: "9" }).setToken(token);
 })();
 
 const buttonFiles = fs
-  .readdirSync("./buttons")
+  .readdirSync(path.join(__dirname, "./buttons"))
   .filter((file) => file.endsWith(".ts"));
-const buttons = buttonFiles.map((file) => require(`./buttons/${file}`));
+const buttons = buttonFiles.map((file) =>
+  require(path.join(__dirname, `./buttons/${file}`))
+);
 
 const modalFiles = fs
-  .readdirSync("./modals")
+  .readdirSync(path.join(__dirname, "./modals"))
   .filter((file) => file.endsWith(".ts"));
-const modals = modalFiles.map((file) => require(`./modals/${file}`));
+const modals = modalFiles.map((file) =>
+  require(path.join(__dirname, `./modals/${file}`))
+);
 
 // Command handler
 client.on("interactionCreate", async (interaction: Interaction) => {
@@ -96,10 +103,13 @@ client.on("ready", () => {
 
 // Load events
 const eventsFiles = fs
-  .readdirSync("./events")
+  .readdirSync(path.join(__dirname, "./events"))
   .filter((file) => file.endsWith(".ts"));
-const events = eventsFiles.map((file) => require(`./events/${file}`));
+const events = eventsFiles.map((file) =>
+  require(path.join(__dirname, `./events/${file}`))
+);
 for (let index = 0; index < eventsFiles.length; index++) {
   const eventName = eventsFiles[index].replace(".ts", "");
+  console.log(`Registering event: ${eventName}`);
   client.on(eventName, events[index]);
 }

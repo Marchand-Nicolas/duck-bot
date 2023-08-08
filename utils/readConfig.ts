@@ -1,13 +1,14 @@
 import { existsSync, writeFileSync, readFileSync } from "fs";
+import path from "path";
 
 const readConfig = () => {
   // Check if file exists
-  const path = "./storage/config.json";
+  const p = path.join(__dirname, "./storage/config.json");
 
-  existsSync(path) || writeFileSync(path, "{}");
+  existsSync(p) || writeFileSync(p, "{}");
 
   // Read file
-  const content = readFileSync(path, "utf-8");
+  const content = readFileSync(p, "utf-8");
 
   // Parse file
   const config = JSON.parse(content);
