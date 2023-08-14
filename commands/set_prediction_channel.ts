@@ -31,7 +31,6 @@ const setPredictionChannel = async (interaction: CommandInteraction) => {
   const message = await channel.send(
     "This message is going to contain predictions. Please do not delete it"
   );
-  await message.pin();
   writeConfig("predictionMessageId", message.id);
   writeConfig("predictionChannelId", channel.id);
   await interaction.reply({
