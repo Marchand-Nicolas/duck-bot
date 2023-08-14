@@ -49,9 +49,9 @@ const refreshPredictionMessage = async (client: Client) => {
   for (let index = 0; index < userPredictions.length; index++) {
     const element = userPredictions[index] as any;
     newMessageContent += "\n";
-    newMessageContent += `__${
+    newMessageContent += `**${
       Math.round(element.price * 10 ** 8) / 10 ** 8
-    }__ <@${element.user_id}>`;
+    }** <@${element.user_id}>`;
   }
 
   newMessageContent +=
