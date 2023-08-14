@@ -60,7 +60,7 @@ const refresh = async (client: Client) => {
       const message = await channel.messages.fetch(config.predictionMessageId);
       if (!message) return;
       message.edit({
-        content: `❌ **PREDICTIONS ENDED FOR ${title.toUpperCase()}`,
+        content: `❌ **PREDICTIONS ENDED FOR ${title.toUpperCase()}** ❌`,
         files: [duckImage],
       });
       await connection.execute(
