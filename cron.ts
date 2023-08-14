@@ -26,6 +26,7 @@ const refresh = async (client: Client) => {
     const startDate = new Date(prediction.start_date);
     const title = prediction.title;
     const duckImage = prediction.duck_image as string;
+    const endImage = prediction.end_image as string;
     // Check if prediction has started
     if (started === 0 && startDate.getTime() <= now.getTime()) {
       const config = readConfig();
@@ -61,7 +62,7 @@ const refresh = async (client: Client) => {
       if (!message) return;
       message.edit({
         content: `❌ **PREDICTIONS ENDED FOR ${title.toUpperCase()}** ❌`,
-        files: [duckImage],
+        files: [endImage],
       });
       await connection.execute(
         "UPDATE predictions SET ended = 1 WHERE id = ?",

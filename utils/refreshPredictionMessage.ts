@@ -3,6 +3,7 @@ import readConfig from "../utils/readConfig";
 import getDbOptions from "../utils/getDbOptions";
 import getEveryUsersScore from "./getEveryUsersScores";
 import { createConnection } from "mysql2/promise";
+import computePrice from "./computePrice";
 
 const refreshPredictionMessage = async (client: Client) => {
   const config = readConfig();
@@ -22,7 +23,6 @@ const refreshPredictionMessage = async (client: Client) => {
   const lines = message.content.split("\n");
 
   let newMessageContent = lines[0];
-  newMessageContent += "\n\n🦆 Current predictions:\n";
 
   const options = getDbOptions() as any;
   // Support bigints
@@ -35,27 +35,28 @@ const refreshPredictionMessage = async (client: Client) => {
   );
 
   if (!Array.isArray(rows)) return db.end();
+  if (rows.length) {
+    newMessageContent += "\n\n🦆 Current predictions:\n";
+    const id = (rows[0] as any).id;
 
-  const id = (rows[0] as any).id;
+    const [userPredictions] = await db.execute(
+      "SELECT * FROM user_predictions WHERE prediction_id = ?",
+      [id]
+    );
 
-  const [userPredictions] = await db.execute(
-    "SELECT * FROM user_predictions WHERE prediction_id = ?",
-    [id]
-  );
+    db.end();
+    if (!Array.isArray(userPredictions)) return db.end();
 
-  db.end();
-  if (!Array.isArray(userPredictions)) return db.end();
-
-  for (let index = 0; index < userPredictions.length; index++) {
-    const element = userPredictions[index] as any;
-    newMessageContent += "\n";
-    newMessageContent += `**${
-      Math.round(element.price * 10 ** 8) / 10 ** 8
-    }** <@${element.user_id}>`;
-  }
-
-  newMessageContent +=
-    "\n\n➡️ **To predict a price, use the /predict command**";
+    for (let index = 0; index < userPredictions.length; index++) {
+      const element = userPredictions[index] as any;
+      newMessageContent += "\n";
+      newMessageContent += `**${computePrice(element.price)}** <@${
+        element.user_id
+      }>`;
+    }
+    newMessageContent +=
+      "\n\n➡️ **To predict a price, use the /predict command**";
+  } else db.end();
 
   const scores = await getEveryUsersScore();
   const keys = Object.keys(scores);

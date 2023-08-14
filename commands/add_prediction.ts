@@ -2,6 +2,7 @@ import { CommandInteraction, TextChannel } from "discord.js";
 import getDbOptions from "../utils/getDbOptions";
 import readConfig from "../utils/readConfig";
 import { createConnection } from "mysql2/promise";
+import writeConfig from "../utils/writeConfig";
 
 const addPrediction = async (interaction: CommandInteraction) => {
   if (typeof interaction.member?.permissions === "string") return;
@@ -17,10 +18,19 @@ const addPrediction = async (interaction: CommandInteraction) => {
   const startIn = (interaction.options.get("start-in")?.value || 0) as number;
   const duration = interaction.options.get("duration")?.value as number;
   const duckImage = interaction.options.get("duck-image")?.attachment;
+  const endImage = interaction.options.get("end-image")?.attachment;
 
   if (!duckImage) {
     await interaction.reply({
       content: "Duck image not found",
+      ephemeral: true,
+    });
+    return;
+  }
+
+  if (!endImage) {
+    await interaction.reply({
+      content: "End image not found",
       ephemeral: true,
     });
     return;
@@ -43,16 +53,6 @@ const addPrediction = async (interaction: CommandInteraction) => {
   if (!channel) {
     await interaction.reply({
       content: "Prediction channel not found",
-      ephemeral: true,
-    });
-    return;
-  }
-
-  const message = await channel?.messages.fetch(config.predictionMessageId);
-
-  if (!message) {
-    await interaction.reply({
-      content: "Prediction message not found",
       ephemeral: true,
     });
     return;
@@ -88,9 +88,14 @@ const addPrediction = async (interaction: CommandInteraction) => {
     return;
   }
 
+  const message = await channel.send(
+    "This message is going to contain predictions. Please do not delete it"
+  );
+  writeConfig("predictionMessageId", message.id);
+
   await connection.execute(
-    `INSERT INTO predictions (title, start_date, end_date, duck_image) VALUES (?, ?, ?, ?)`,
-    [title, startDate, endDate, duckImage.url]
+    `INSERT INTO predictions (title, start_date, end_date, duck_image, end_image) VALUES (?, ?, ?, ?, ?)`,
+    [title, startDate, endDate, duckImage.url, endImage.url]
   );
 
   connection.end();
@@ -121,6 +126,13 @@ module.exports = {
     {
       name: "duck-image",
       description: "The duck illustration",
+      type: 11,
+      required: true,
+    },
+    {
+      name: "end-image",
+      description:
+        "Will replace the duck illustration when the prediction ends",
       type: 11,
       required: true,
     },

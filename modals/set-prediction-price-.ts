@@ -3,6 +3,7 @@ import getDbOptions from "../utils/getDbOptions";
 import getUserScore from "../utils/getUserScore";
 import refreshPredictionMessage from "../utils/refreshPredictionMessage";
 import { Connection, createConnection } from "mysql2/promise";
+import computePrice from "../utils/computePrice";
 
 const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
   const interactionId = interaction.customId;
@@ -53,7 +54,7 @@ const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
   const modifiedUsers: Array<any> = [];
   for (let index = 0; index < sortedPredictions.length; index++) {
     const userPrediction = sortedPredictions[index] as any;
-    const pricePredicted = userPrediction.price;
+    const pricePredicted = computePrice(userPrediction.price);
     const nextPrediction = sortedPredictions[index + 1] as any;
     modifiedUsers.push(userPrediction);
     await addScore(
@@ -62,7 +63,8 @@ const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
       userPrediction.prediction_id,
       db
     );
-    if (pricePredicted !== nextPrediction?.price) predictionScore--;
+    if (pricePredicted !== computePrice(nextPrediction?.price))
+      predictionScore--;
   }
   db.end();
 
@@ -75,7 +77,9 @@ const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
             async (u) =>
               `<@${u.user_id}> has now ${(
                 await getUserScore(u.user_id)
-              ).toString()} points - predicted price: \`${u.price}\``
+              ).toString()} points - predicted price: \`${computePrice(
+                u.price
+              )}\``
           )
         )
       ).join("\n"),
