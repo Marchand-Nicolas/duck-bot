@@ -24,6 +24,8 @@ const refreshPredictionMessage = async (client: Client) => {
 
   let newMessageContent = lines[0];
 
+  let attachments = message.attachments.map((a) => a.url);
+
   const options = getDbOptions() as any;
   // Support bigints
   options.supportBigNumbers = true;
@@ -36,8 +38,17 @@ const refreshPredictionMessage = async (client: Client) => {
 
   if (!Array.isArray(rows)) return db.end();
   if (rows.length) {
+    const row = rows[0] as any;
+    const duckImage = row.duck_image as string;
+    const title = row.title;
+    const endDate = row.end_date;
+    const id = row.id;
+
+    attachments = [duckImage];
+    newMessageContent = `✅ **PREDICTIONS ARE OPEN FOR ${title.toUpperCase()} AND WILL END <t:${Math.floor(
+      endDate.getTime() / 1000
+    )}:R> ** ✅\n\n➡️ **To predict a price, use the /predict command**`;
     newMessageContent += "\n\n🦆 Current predictions:\n";
-    const id = (rows[0] as any).id;
 
     const [userPredictions] = await db.execute(
       "SELECT * FROM user_predictions WHERE prediction_id = ?",
@@ -54,8 +65,6 @@ const refreshPredictionMessage = async (client: Client) => {
         element.user_id
       }>`;
     }
-    newMessageContent +=
-      "\n\n➡️ **To predict a price, use the /predict command**";
   } else db.end();
 
   const scores = await getEveryUsersScore();
@@ -78,6 +87,7 @@ const refreshPredictionMessage = async (client: Client) => {
           : "No scores yet",
       },
     ],
+    files: attachments,
   });
 };
 

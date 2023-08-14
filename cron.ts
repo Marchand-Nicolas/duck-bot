@@ -2,6 +2,7 @@ import { Client, TextChannel } from "discord.js";
 import getDbOptions from "./utils/getDbOptions";
 import readConfig from "./utils/readConfig";
 import { createConnection } from "mysql2/promise";
+import refreshPredictionMessage from "./utils/refreshPredictionMessage";
 
 const startCron = (client: Client) => {
   refresh(client);
@@ -25,7 +26,6 @@ const refresh = async (client: Client) => {
     const now = new Date();
     const startDate = new Date(prediction.start_date);
     const title = prediction.title;
-    const duckImage = prediction.duck_image as string;
     const endImage = prediction.end_image as string;
     // Check if prediction has started
     if (started === 0 && startDate.getTime() <= now.getTime()) {
@@ -37,17 +37,11 @@ const refresh = async (client: Client) => {
       if (!channel) return;
       const message = await channel.messages.fetch(config.predictionMessageId);
       if (!message) return;
-
-      message.edit({
-        content: `✅ **PREDICTIONS ARE OPEN FOR ${title.toUpperCase()} AND WILL END <t:${Math.floor(
-          endDate.getTime() / 1000
-        )}:R> ** ✅\n\n➡️ **To predict a price, use the /predict command**`,
-        files: [duckImage],
-      });
       await connection.execute(
         "UPDATE predictions SET started = 1 WHERE id = ?",
         [id]
       );
+      await refreshPredictionMessage(client);
       return;
     }
     // Check if prediction has ended
