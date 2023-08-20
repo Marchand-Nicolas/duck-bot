@@ -48,7 +48,6 @@ const refreshPredictionMessage = async (client: Client) => {
     newMessageContent = `✅ **PREDICTIONS ARE OPEN FOR ${title.toUpperCase()} AND WILL END <t:${Math.floor(
       endDate.getTime() / 1000
     )}:R> ** ✅\n\n➡️ **To predict a price, use the /predict command**`;
-    newMessageContent += "\n\nCurrent predictions:\n";
 
     const [userPredictions] = await db.execute(
       "SELECT * FROM user_predictions WHERE prediction_id = ?",
@@ -58,10 +57,13 @@ const refreshPredictionMessage = async (client: Client) => {
     db.end();
     if (!Array.isArray(userPredictions)) return db.end();
 
+    if (userPredictions.length)
+      newMessageContent += "\n\nCurrent predictions:\n";
+
     for (let index = 0; index < userPredictions.length; index++) {
       const element = userPredictions[index] as any;
       newMessageContent += "\n";
-      newMessageContent += `**${computePrice(element.price)}** <@${
+      newMessageContent += `**${computePrice(element.price)} ETH** <@${
         element.user_id
       }>`;
     }

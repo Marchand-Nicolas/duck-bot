@@ -79,7 +79,7 @@ const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
                 await getUserScore(u.user_id)
               ).toString()} points - predicted price: \`${computePrice(
                 u.price
-              )}\``
+              )} ETH\``
           )
         )
       ).join("\n"),
