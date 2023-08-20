@@ -48,7 +48,7 @@ const refreshPredictionMessage = async (client: Client) => {
     newMessageContent = `✅ **PREDICTIONS ARE OPEN FOR ${title.toUpperCase()} AND WILL END <t:${Math.floor(
       endDate.getTime() / 1000
     )}:R> ** ✅\n\n➡️ **To predict a price, use the /predict command**`;
-    newMessageContent += "\n\n🦆 Current predictions:\n";
+    newMessageContent += "\n\nCurrent predictions:\n";
 
     const [userPredictions] = await db.execute(
       "SELECT * FROM user_predictions WHERE prediction_id = ?",
