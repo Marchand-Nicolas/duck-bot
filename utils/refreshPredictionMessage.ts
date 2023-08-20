@@ -1,7 +1,6 @@
 import { Client, TextChannel } from "discord.js";
 import readConfig from "../utils/readConfig";
 import getDbOptions from "../utils/getDbOptions";
-import getEveryUsersScore from "./getEveryUsersScores";
 import { createConnection } from "mysql2/promise";
 import computePrice from "./computePrice";
 
@@ -69,26 +68,8 @@ const refreshPredictionMessage = async (client: Client) => {
     }
   } else db.end();
 
-  const scores = await getEveryUsersScore();
-  const keys = Object.keys(scores);
-
   message.edit({
     content: newMessageContent,
-    embeds: [
-      {
-        title: "Leaderboard",
-        description: keys.length
-          ? keys
-              .map((k) => `<@${k}>: ${scores[k]} points`)
-              .sort((a, b) => {
-                const aScore = parseInt(a.split(":")[1]);
-                const bScore = parseInt(b.split(":")[1]);
-                return bScore - aScore;
-              })
-              .join("\n")
-          : "No scores yet",
-      },
-    ],
     files: attachments,
   });
 };
