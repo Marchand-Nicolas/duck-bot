@@ -3,6 +3,7 @@ import getDbOptions from "./utils/getDbOptions";
 import readConfig from "./utils/readConfig";
 import { createConnection } from "mysql2/promise";
 import refreshPredictionMessage from "./utils/refreshPredictionMessage";
+import computePrice from "./utils/computePrice";
 
 const startCron = (client: Client) => {
   refresh(client);
@@ -10,7 +11,11 @@ const startCron = (client: Client) => {
 };
 
 const refresh = async (client: Client) => {
-  const connection = await createConnection(getDbOptions());
+  const options = getDbOptions() as any;
+  // Support bigints
+  options.supportBigNumbers = true;
+  options.bigNumberStrings = true;
+  const connection = await createConnection(options);
 
   const [rows, fields] = await connection.execute(
     "SELECT * FROM predictions WHERE ended = 0"
@@ -54,8 +59,23 @@ const refresh = async (client: Client) => {
       if (!channel) return;
       const message = await channel.messages.fetch(config.predictionMessageId);
       if (!message) return;
+      const [userPredictions] = await connection.execute(
+        "SELECT * FROM user_predictions WHERE prediction_id = ?",
+        [id]
+      );
+      if (!Array.isArray(userPredictions)) return;
+      let newMessageContent = `❌ **PREDICTIONS ENDED FOR ${title.toUpperCase()}** ❌\n\n`;
+      if (userPredictions.length) newMessageContent += "Predictions:\n";
+
+      for (let index = 0; index < userPredictions.length; index++) {
+        const element = userPredictions[index] as any;
+        newMessageContent += "\n";
+        newMessageContent += `**${computePrice(element.price)} ETH** <@${
+          element.user_id
+        }>`;
+      }
       message.edit({
-        content: `❌ **PREDICTIONS ENDED FOR ${title.toUpperCase()}** ❌`,
+        content: newMessageContent,
         files: [endImage],
       });
       await connection.execute(
