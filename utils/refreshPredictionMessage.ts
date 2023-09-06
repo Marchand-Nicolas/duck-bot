@@ -44,9 +44,8 @@ const refreshPredictionMessage = async (client: Client) => {
     const id = row.id;
 
     attachments = [duckImage];
-    newMessageContent = `✅ **PREDICTIONS ARE OPEN FOR ${title.toUpperCase()} AND WILL END <t:${Math.floor(
-      endDate.getTime() / 1000
-    )}:R> ** ✅\n\n➡️ **To predict a price, use the /predict command**`;
+    newMessageContent = `**~ MAKE YOUR PREDICTION FOR ${title.toUpperCase()}~**
+Predictions will end <t:${Math.floor(endDate.getTime() / 1000)}:R>`;
 
     const [userPredictions] = await db.execute(
       "SELECT * FROM user_predictions WHERE prediction_id = ?",
@@ -59,13 +58,20 @@ const refreshPredictionMessage = async (client: Client) => {
     if (userPredictions.length)
       newMessageContent += "\n\nCurrent predictions:\n";
 
-    for (let index = 0; index < userPredictions.length; index++) {
+    // DESC
+    const orderedPredictions = userPredictions.sort(
+      (a: any, b: any) => computePrice(b.price) - computePrice(a.price)
+    );
+
+    for (let index = 0; index < orderedPredictions.length; index++) {
       const element = userPredictions[index] as any;
       newMessageContent += "\n";
       newMessageContent += `**${computePrice(element.price)} ETH** <@${
         element.user_id
       }>`;
     }
+
+    newMessageContent += `\n\n*To predict a price, use the /predict command*`;
   } else db.end();
 
   message.edit({

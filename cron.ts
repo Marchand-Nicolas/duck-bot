@@ -64,8 +64,8 @@ const refresh = async (client: Client) => {
         [id]
       );
       if (!Array.isArray(userPredictions)) return;
-      let newMessageContent = `❌ **PREDICTIONS ENDED FOR ${title.toUpperCase()}** ❌\n\n`;
-      if (userPredictions.length) newMessageContent += "Predictions:\n";
+      let newMessageContent = `**~ PREDICTIONS FOR ${title.toUpperCase()} ARE NOW CLOSED ~**`;
+      if (userPredictions.length) newMessageContent += "\n\nPredictions:\n";
 
       for (let index = 0; index < userPredictions.length; index++) {
         const element = userPredictions[index] as any;

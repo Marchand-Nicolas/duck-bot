@@ -76,19 +76,6 @@ const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
   const scores = await getEveryUsersScore();
   const keys = Object.keys(scores);
 
-  const symbols = {
-    "9": "<:9_:1142745141996683334>",
-    "8": "<:8_:1142745139677253805>",
-    "7": "<:7_:1142745138246991872>",
-    "6": "<:6_:1142745135902376019>",
-    "5": "<:5_:1142745134732156958>",
-    "4": "<:4_:1142745133431918633>",
-    "3": "<:3_:1142745131351547964>",
-    "2": "<:2_:1142745129820639252>",
-    "1": "<:1_:1142745128369406093>",
-    "0": "<:0_:1142745125802487828>",
-  };
-
   const leaderboard = keys.length
     ? keys
         .sort((a, b) => {
@@ -98,20 +85,16 @@ const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
         })
         .map(
           (k, index) =>
-            `**${index + 1}**. <@${k}>: ${scores[k]} points ${
+            `> **${index + 1}**. <@${k}>: **${scores[k]} points** ${
               modifiedUsers.find((u) => u.userId === k)?.reward
-                ? "<:__:1142746506076626974>" +
-                  modifiedUsers
-                    .find((u) => u.userId === k)
-                    ?.reward.toString()
-                    .split("")
-                    .map((s: keyof typeof symbols) => symbols[s])
-                    .join("")
+                ? "(+" +
+                  modifiedUsers.find((u) => u.userId === k)?.reward.toString() +
+                  ")"
                 : ""
             }`
         )
         .join("\n")
-    : "No scores yet";
+    : "> No scores yet";
 
   const config = readConfig();
 
@@ -123,7 +106,7 @@ const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
 
   if (!channel) return;
 
-  channel.send("**LEADERBOARD**\n\n" + leaderboard);
+  channel.send("> **LEADERBOARD**\n> \n" + leaderboard);
 
   await interaction.reply({
     content: "✅ All the points has been distributed.",
