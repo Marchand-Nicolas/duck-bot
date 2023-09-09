@@ -143,7 +143,7 @@ ${
         (sortedPredictions as any).find(
           (p: any) => p.user_id === modifiedUsers[0].userId
         )?.price
-      )} ETH** !\n\n\n` +
+      )} ETH** !\n\n` +
         "> **LEADERBOARD**\n> \n" +
         leaderboard
     );

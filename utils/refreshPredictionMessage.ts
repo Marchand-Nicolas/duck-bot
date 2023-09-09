@@ -40,8 +40,8 @@ const refreshPredictionMessage = async (client: Client) => {
     const id = row.id;
 
     attachments = [duckImage];
-    newMessageContent = `**~ MAKE YOUR PREDICTION FOR ${title.toUpperCase()}~**
-\ \ \ Predictions will end <t:${Math.floor(endDate.getTime() / 1000)}:R>`;
+    newMessageContent = `**~ MAKE YOUR PREDICTION FOR ${title.toUpperCase()} ~**
+\ \ \ \`Predictions will close \`<t:${Math.floor(endDate.getTime() / 1000)}:R>`;
 
     const [userPredictions] = await db.execute(
       "SELECT * FROM user_predictions WHERE prediction_id = ?",
