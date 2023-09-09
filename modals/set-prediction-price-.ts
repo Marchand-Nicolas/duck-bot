@@ -51,6 +51,8 @@ const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
     predictionId,
   ]);
 
+  const oldScores = await getEveryUsersScore();
+
   // Order predictions by price proximity
   const sortedPredictions = predictions.sort(
     (a: any, b: any) => Math.abs(a.price - price) - Math.abs(b.price - price)
@@ -81,18 +83,34 @@ const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
 
   const scores = await getEveryUsersScore();
   const keys = Object.keys(scores);
+  const oldKeys = Object.keys(oldScores);
 
-  const orderedKeys = keys.sort((a, b) => {
+  const order = (a: string, b: string) => {
     const aScore = parseInt(a.split(":")[1]);
     const bScore = parseInt(b.split(":")[1]);
     return bScore - aScore;
-  });
+  };
+
+  const orderedOldKeys = oldKeys.sort(order);
+  const orderedKeys = keys.sort(order);
+
+  const upEmoji = "🔺";
+  const sameEmoji = "▪️";
+  const downEmoji = "🔻";
 
   const leaderboard = keys.length
     ? orderedKeys
         .map(
           (k, index) =>
-            `> **${index + 1}**. <@${k}>: **${scores[k]} points** ${
+            `> ${
+              orderedOldKeys.indexOf(k) === -1
+                ? upEmoji
+                : orderedOldKeys.indexOf(k) === index
+                ? sameEmoji
+                : orderedOldKeys.indexOf(k) < index
+                ? downEmoji
+                : upEmoji
+            } **${index + 1}**. <@${k}>: **${scores[k]} points** ${
               modifiedUsers.find((u) => u.userId === k)?.reward
                 ? "(+" +
                   modifiedUsers.find((u) => u.userId === k)?.reward.toString() +
