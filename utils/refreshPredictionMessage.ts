@@ -25,11 +25,7 @@ const refreshPredictionMessage = async (client: Client) => {
 
   let attachments = message.attachments.map((a) => a.url);
 
-  const options = getDbOptions() as any;
-  // Support bigints
-  options.supportBigNumbers = true;
-  options.bigNumberStrings = true;
-  const db = await createConnection(options);
+  const db = await createConnection(getDbOptions());
 
   const [rows] = await db.execute(
     "SELECT * FROM predictions WHERE started = 1 AND ended = 0"
@@ -45,7 +41,7 @@ const refreshPredictionMessage = async (client: Client) => {
 
     attachments = [duckImage];
     newMessageContent = `**~ MAKE YOUR PREDICTION FOR ${title.toUpperCase()}~**
-Predictions will end <t:${Math.floor(endDate.getTime() / 1000)}:R>`;
+\`Predictions will end \`<t:${Math.floor(endDate.getTime() / 1000)}:R>`;
 
     const [userPredictions] = await db.execute(
       "SELECT * FROM user_predictions WHERE prediction_id = ?",
@@ -56,7 +52,7 @@ Predictions will end <t:${Math.floor(endDate.getTime() / 1000)}:R>`;
     if (!Array.isArray(userPredictions)) return db.end();
 
     if (userPredictions.length)
-      newMessageContent += "\n\nCurrent predictions:\n";
+      newMessageContent += "\n\n**Current predictions:**\n";
 
     // DESC
     const orderedPredictions = userPredictions.sort(

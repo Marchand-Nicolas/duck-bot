@@ -1,6 +1,7 @@
-import { CommandInteraction } from "discord.js";
+import { CommandInteraction, TextChannel } from "discord.js";
 import getDbOptions from "../utils/getDbOptions";
-import { createConnection } from "mysql2/promise";
+import { RowDataPacket, createConnection } from "mysql2/promise";
+import readConfig from "../utils/readConfig";
 
 const deletePrediction = async (interaction: CommandInteraction) => {
   if (typeof interaction.member?.permissions === "string") return;
@@ -17,16 +18,45 @@ const deletePrediction = async (interaction: CommandInteraction) => {
 
   const connection = await createConnection(getDbOptions());
 
-  const [rows] = await connection.execute(
-    `DELETE FROM predictions WHERE id = ?`,
+  const [predictions] = await connection.execute(
+    "SELECT * FROM predictions WHERE id = ?",
     [predictionId]
   );
+
+  if (!Array.isArray(predictions)) return connection.end();
+
+  if (!predictions.length) {
+    await interaction.reply({
+      content: "Prediction not found",
+      ephemeral: true,
+    });
+    return connection.end();
+  }
+
+  const messageId = (predictions[0] as RowDataPacket).message_id;
+
+  if (messageId !== "0") {
+    // Delete message
+    const config = readConfig();
+    if (!config.predictionChannelId) return;
+    const channel = (await interaction.guild?.channels.fetch(
+      config.predictionChannelId
+    )) as TextChannel;
+    if (!channel) return;
+    const message = await channel.messages.fetch(messageId);
+    if (message) {
+      await message.delete();
+    }
+  }
+
+  await connection.execute(`DELETE FROM predictions WHERE id = ?`, [
+    predictionId,
+  ]);
 
   connection.end();
 
   await interaction.reply({
-    content:
-      (rows as any).affectedRows === 1 ? "Prediction deleted" : "Not found",
+    content: "Prediction deleted",
     ephemeral: true,
   });
 };

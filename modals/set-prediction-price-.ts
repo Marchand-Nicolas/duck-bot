@@ -19,11 +19,17 @@ const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
     return;
   }
 
-  const options = getDbOptions() as any;
-  // Support bigints
-  options.supportBigNumbers = true;
-  options.bigNumberStrings = true;
-  const db = await createConnection(options);
+  const db = await createConnection(getDbOptions());
+
+  // Get prediction
+  const [rows] = await db.execute("SELECT * FROM predictions WHERE id = ?", [
+    predictionId,
+  ]);
+
+  if (!Array.isArray(rows)) return db.end();
+  if (!rows.length) return db.end();
+
+  const prediction = rows[0] as any;
 
   // Get user predictions
   const [predictions] = await db.execute(
@@ -76,13 +82,14 @@ const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
   const scores = await getEveryUsersScore();
   const keys = Object.keys(scores);
 
+  const orderedKeys = keys.sort((a, b) => {
+    const aScore = parseInt(a.split(":")[1]);
+    const bScore = parseInt(b.split(":")[1]);
+    return bScore - aScore;
+  });
+
   const leaderboard = keys.length
-    ? keys
-        .sort((a, b) => {
-          const aScore = parseInt(a.split(":")[1]);
-          const bScore = parseInt(b.split(":")[1]);
-          return bScore - aScore;
-        })
+    ? orderedKeys
         .map(
           (k, index) =>
             `> **${index + 1}**. <@${k}>: **${scores[k]} points** ${
@@ -106,7 +113,22 @@ const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
 
   if (!channel) return;
 
-  channel.send("> **LEADERBOARD**\n> \n" + leaderboard);
+  if (modifiedUsers.length)
+    channel.send(
+      `**~ ${prediction.title.toUpperCase()} AUCTION IS OVER ~**
+
+${
+  prediction.title
+} has reacher a total of **${price} ETH**, congratulations to today's top predictor, <@${
+        modifiedUsers[0].userId
+      }>, with a prediction of **${computePrice(
+        (sortedPredictions as any).find(
+          (p: any) => p.user_id === modifiedUsers[0].userId
+        )?.price
+      )} ETH** !\n\n\n` +
+        "> **LEADERBOARD**\n> \n" +
+        leaderboard
+    );
 
   await interaction.reply({
     content: "✅ All the points has been distributed.",

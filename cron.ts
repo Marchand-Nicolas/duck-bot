@@ -11,11 +11,7 @@ const startCron = (client: Client) => {
 };
 
 const refresh = async (client: Client) => {
-  const options = getDbOptions() as any;
-  // Support bigints
-  options.supportBigNumbers = true;
-  options.bigNumberStrings = true;
-  const connection = await createConnection(options);
+  const connection = await createConnection(getDbOptions());
 
   const [rows, fields] = await connection.execute(
     "SELECT * FROM predictions WHERE ended = 0"
@@ -65,7 +61,7 @@ const refresh = async (client: Client) => {
       );
       if (!Array.isArray(userPredictions)) return;
       let newMessageContent = `**~ PREDICTIONS FOR ${title.toUpperCase()} ARE NOW CLOSED ~**`;
-      if (userPredictions.length) newMessageContent += "\n\nPredictions:\n";
+      if (userPredictions.length) newMessageContent += "\n\n**Predictions:**\n";
 
       for (let index = 0; index < userPredictions.length; index++) {
         const element = userPredictions[index] as any;

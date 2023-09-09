@@ -84,14 +84,12 @@ const addPrediction = async (interaction: CommandInteraction) => {
       "This message is going to contain predictions. Please do not delete it"
     );
     writeConfig("predictionMessageId", message.id);
-  }
 
-  if (!predictionId)
     await connection.execute(
-      `INSERT INTO predictions (title, start_date, end_date, duck_image, end_image) VALUES (?, ?, ?, ?, ?)`,
-      [title, startDate, endDate, duckImage.url, endImage.url]
+      `INSERT INTO predictions (title, start_date, end_date, duck_image, end_image, message_id) VALUES (?, ?, ?, ?, ?, ?)`,
+      [title, startDate, endDate, duckImage.url, endImage.url, message.id]
     );
-  else
+  } else
     await connection.execute(
       `UPDATE predictions SET title = ?, start_date = ?, end_date = ?, duck_image = ?, end_image = ? WHERE id = ?`,
       [title, startDate, endDate, duckImage.url, endImage.url, predictionId]
