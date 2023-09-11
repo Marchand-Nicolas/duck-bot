@@ -137,13 +137,13 @@ const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
 
 ${
   prediction.title
-} has reacher a total of **${price} ETH**, congratulations to today's top predictor, <@${
+} has reached a total of **${price} ETH**, congratulations to today's top predictor, <@${
         modifiedUsers[0].userId
       }>, with a prediction of **${computePrice(
         (sortedPredictions as any).find(
           (p: any) => p.user_id === modifiedUsers[0].userId
         )?.price
-      )} ETH** !\n\n` +
+      )} ETH** !\n\n\n` +
         "> **LEADERBOARD**\n> \n" +
         leaderboard
     );
