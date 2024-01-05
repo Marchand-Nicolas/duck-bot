@@ -70,7 +70,7 @@ const addPrediction = async (interaction: CommandInteraction) => {
       content: "There is already an active prediction",
       ephemeral: true,
     });
-    return;
+    return connection.end();
   }
 
   if (!predictionId) {

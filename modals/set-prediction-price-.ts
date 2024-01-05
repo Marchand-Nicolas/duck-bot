@@ -79,6 +79,8 @@ const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
     if (pricePredicted !== computePrice(nextPrediction?.price)) rank++;
   }
 
+  db.end();
+
   const scores = await getEveryUsersScore();
   const keys = Object.keys(scores);
   const oldKeys = Object.keys(oldScores);
