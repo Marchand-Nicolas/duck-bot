@@ -2,7 +2,6 @@ import { ModalSubmitInteraction, TextChannel } from "discord.js";
 import getDbOptions from "../utils/getDbOptions";
 import { Connection, createConnection } from "mysql2/promise";
 import computePrice from "../utils/computePrice";
-import readConfig from "../utils/readConfig";
 import getEveryUsersScore from "../utils/getEveryUsersScores";
 
 const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
@@ -79,7 +78,6 @@ const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
       );
     if (pricePredicted !== computePrice(nextPrediction?.price)) rank++;
   }
-  db.end();
 
   const scores = await getEveryUsersScore();
   const keys = Object.keys(scores);
@@ -121,18 +119,8 @@ const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
         .join("\n")
     : "> No scores yet";
 
-  const config = readConfig();
-
-  if (!config.predictionChannelId) return;
-
-  const channel = (await interaction.client.channels.fetch(
-    config.predictionChannelId
-  )) as TextChannel;
-
-  if (!channel) return;
-
   if (modifiedUsers.length)
-    channel.send(
+    interaction?.channel?.send(
       `**~ ${prediction.title.toUpperCase()} AUCTION IS OVER ~**
 
 ${

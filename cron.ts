@@ -1,6 +1,5 @@
 import { Client, TextChannel } from "discord.js";
 import getDbOptions from "./utils/getDbOptions";
-import readConfig from "./utils/readConfig";
 import { createConnection } from "mysql2/promise";
 import refreshPredictionMessage from "./utils/refreshPredictionMessage";
 import computePrice from "./utils/computePrice";
@@ -11,51 +10,40 @@ const startCron = (client: Client) => {
 };
 
 const refresh = async (client: Client) => {
-  const connection = await createConnection(getDbOptions());
+  const db = await createConnection(getDbOptions());
 
-  const [rows, fields] = await connection.execute(
+  const [rows, fields] = await db.execute(
     "SELECT * FROM predictions WHERE ended = 0"
   );
 
-  if (!Array.isArray(rows)) return connection.end();
+  if (!Array.isArray(rows)) return db.end();
 
   for (let index = 0; index < rows.length; index++) {
     const prediction = rows[index] as any;
     const id = prediction.id;
     const started = prediction.started;
+    const ended = prediction.ended;
     const endDate = new Date(prediction.end_date);
     const now = new Date();
     const startDate = new Date(prediction.start_date);
     const title = prediction.title;
     const endImage = prediction.end_image as string;
+    const channelId = prediction.channelId;
+    const messageId = prediction.messageId;
+    if (!channelId || !messageId) continue;
+    const channel = (await client.channels.fetch(channelId)) as TextChannel;
+    if (!channel) continue;
+    const message = await channel.messages.fetch(messageId);
+    if (!message) continue;
     // Check if prediction has started
-    if (started === 0 && startDate.getTime() <= now.getTime()) {
-      const config = readConfig();
-      if (!config.predictionChannelId) return;
-      const channel = (await client.channels.fetch(
-        config.predictionChannelId
-      )) as TextChannel;
-      if (!channel) return;
-      const message = await channel.messages.fetch(config.predictionMessageId);
-      if (!message) return;
-      await connection.execute(
-        "UPDATE predictions SET started = 1 WHERE id = ?",
-        [id]
-      );
-      await refreshPredictionMessage(client);
-      return;
+    if (started === 0 && startDate.getTime() <= now.getTime() && ended === 0) {
+      await db.execute("UPDATE predictions SET started = 1 WHERE id = ?", [id]);
+      await refreshPredictionMessage(client, channelId);
+      continue;
     }
     // Check if prediction has ended
-    if (endDate.getTime() <= now.getTime()) {
-      const config = readConfig();
-      if (!config.predictionChannelId) return;
-      const channel = (await client.channels.fetch(
-        config.predictionChannelId
-      )) as TextChannel;
-      if (!channel) return;
-      const message = await channel.messages.fetch(config.predictionMessageId);
-      if (!message) return;
-      const [userPredictions] = await connection.execute(
+    if (endDate.getTime() <= now.getTime() && ended === 0) {
+      const [userPredictions] = await db.execute(
         "SELECT * FROM user_predictions WHERE prediction_id = ?",
         [id]
       );
@@ -74,14 +62,11 @@ const refresh = async (client: Client) => {
         content: newMessageContent,
         files: [endImage],
       });
-      await connection.execute(
-        "UPDATE predictions SET ended = 1 WHERE id = ?",
-        [id]
-      );
-      return;
+      await db.execute("UPDATE predictions SET ended = 1 WHERE id = ?", [id]);
+      continue;
     }
   }
-  connection.end();
+  db.end();
 };
 
 export default startCron;

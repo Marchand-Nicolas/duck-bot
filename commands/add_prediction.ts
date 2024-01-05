@@ -1,12 +1,16 @@
 import { CommandInteraction, TextChannel } from "discord.js";
 import getDbOptions from "../utils/getDbOptions";
-import readConfig from "../utils/readConfig";
 import { createConnection } from "mysql2/promise";
-import writeConfig from "../utils/writeConfig";
 import refreshPredictionMessage from "../utils/refreshPredictionMessage";
 
 const addPrediction = async (interaction: CommandInteraction) => {
-  if (typeof interaction.member?.permissions === "string") return;
+  if (typeof interaction.member?.permissions === "string") {
+    await interaction.reply({
+      content: "Bad permissions format",
+      ephemeral: true,
+    });
+    return;
+  }
   if (!interaction.member?.permissions.has("Administrator")) {
     await interaction.reply({
       content:
@@ -43,19 +47,8 @@ const addPrediction = async (interaction: CommandInteraction) => {
     return;
   }
 
-  const config = readConfig();
-
-  if (!config.predictionChannelId) {
-    await interaction.reply({
-      content: "Prediction channel not set",
-      ephemeral: true,
-    });
-    return;
-  }
-
-  const channel = (await interaction.guild?.channels.fetch(
-    config.predictionChannelId
-  )) as TextChannel;
+  const channel = interaction.channel as TextChannel;
+  const channelId = channel.id;
 
   if (!channel) {
     await interaction.reply({
@@ -68,7 +61,8 @@ const addPrediction = async (interaction: CommandInteraction) => {
   const connection = await createConnection(getDbOptions());
 
   const [rows] = await connection.execute(
-    "SELECT * FROM predictions WHERE started = 1 AND ENDED = 0"
+    "SELECT * FROM predictions WHERE started = 1 AND ENDED = 0 AND channelId = ?",
+    [channelId]
   );
 
   if (Array.isArray(rows) && rows.length > 0 && !predictionId) {
@@ -83,11 +77,18 @@ const addPrediction = async (interaction: CommandInteraction) => {
     const message = await channel.send(
       "This message is going to contain predictions. Please do not delete it"
     );
-    writeConfig("predictionMessageId", message.id);
 
-    await connection.execute(
-      `INSERT INTO predictions (title, start_date, end_date, duck_image, end_image, message_id) VALUES (?, ?, ?, ?, ?, ?)`,
-      [title, startDate, endDate, duckImage.url, endImage.url, message.id]
+    const [res] = await connection.execute(
+      `INSERT INTO predictions (title, start_date, end_date, duck_image, end_image, channelId, messageId) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        title,
+        startDate,
+        endDate,
+        duckImage.url,
+        endImage.url,
+        channel.id,
+        message.id,
+      ]
     );
   } else
     await connection.execute(
@@ -97,7 +98,7 @@ const addPrediction = async (interaction: CommandInteraction) => {
 
   connection.end();
 
-  if (predictionId) refreshPredictionMessage(interaction.client);
+  if (predictionId) refreshPredictionMessage(interaction.client, channel.id);
 
   await interaction.reply({
     content: !predictionId

@@ -6,7 +6,6 @@ import {
 } from "discord.js";
 import getDbOptions from "../utils/getDbOptions";
 import refreshPredictionMessage from "../utils/refreshPredictionMessage";
-import readConfig from "../utils/readConfig";
 import { createConnection } from "mysql2/promise";
 
 const predict = async (interaction: CommandInteraction) => {
@@ -27,7 +26,8 @@ const predict = async (interaction: CommandInteraction) => {
   const db = await createConnection(getDbOptions());
   // Get current predictions
   const [rows] = await db.execute(
-    "SELECT * FROM predictions WHERE started = 1 AND ENDED = 0"
+    "SELECT * FROM predictions WHERE started = 1 AND ENDED = 0 AND channelId = ?",
+    [interaction.channelId]
   );
   if (!Array.isArray(rows)) {
     await interaction.reply({
@@ -57,16 +57,17 @@ const predict = async (interaction: CommandInteraction) => {
     [id, interaction.user.id, predictionPrice]
   );
 
+  refreshPredictionMessage(interaction.client, prediction.channelId);
+
+  const channelId = prediction.channelId;
+  const messageId = prediction.messageId;
+
   db.end();
-
-  refreshPredictionMessage(interaction.client);
-
-  const config = readConfig();
 
   const viewPredictions = new ButtonBuilder()
     .setLabel("View predictions")
     .setURL(
-      `https://discord.com/channels/${interaction.guildId}/${config.predictionChannelId}/${config.predictionMessageId}`
+      `https://discord.com/channels/${interaction.guildId}/${channelId}/${messageId}`
     )
     .setStyle(ButtonStyle.Link);
 

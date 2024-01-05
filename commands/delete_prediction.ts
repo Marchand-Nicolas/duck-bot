@@ -1,7 +1,6 @@
 import { CommandInteraction, TextChannel } from "discord.js";
 import getDbOptions from "../utils/getDbOptions";
 import { RowDataPacket, createConnection } from "mysql2/promise";
-import readConfig from "../utils/readConfig";
 
 const deletePrediction = async (interaction: CommandInteraction) => {
   if (typeof interaction.member?.permissions === "string") return;
@@ -33,19 +32,20 @@ const deletePrediction = async (interaction: CommandInteraction) => {
     return connection.end();
   }
 
-  const messageId = (predictions[0] as RowDataPacket).message_id;
+  const messageId = (predictions[0] as RowDataPacket).messageId;
 
   if (messageId !== "0") {
-    // Delete message
-    const config = readConfig();
-    if (!config.predictionChannelId) return;
-    const channel = (await interaction.guild?.channels.fetch(
-      config.predictionChannelId
-    )) as TextChannel;
-    if (!channel) return;
-    const message = await channel.messages.fetch(messageId);
-    if (message) {
-      await message.delete();
+    // Delete messages
+    const [messages] = await connection.execute(
+      `SELECT channelId, messageId prediction WHERE predictionId = ?`
+    );
+    for (const message of messages as any[]) {
+      const channel = (await interaction.guild?.channels.fetch(
+        message.channelId
+      )) as TextChannel;
+      if (!channel) continue;
+      const messageToDelete = await channel.messages.fetch(message.messageId);
+      await messageToDelete.delete();
     }
   }
 

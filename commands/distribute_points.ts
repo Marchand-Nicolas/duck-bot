@@ -21,7 +21,8 @@ const distributePoints = async (interaction: CommandInteraction) => {
   const connection = await createConnection(getDbOptions());
 
   const [rows] = await connection.execute(
-    `SELECT * FROM predictions WHERE price = 0 AND ended = 1 ORDER BY id DESC LIMIT 1;`
+    `SELECT * FROM predictions WHERE price = 0 AND ended = 1 AND channelId = ? ORDER BY id DESC LIMIT 1`,
+    [interaction.channelId]
   );
 
   connection.end();
