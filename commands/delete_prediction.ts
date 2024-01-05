@@ -1,6 +1,6 @@
 import { CommandInteraction, TextChannel } from "discord.js";
 import getDbOptions from "../utils/getDbOptions";
-import { RowDataPacket, createConnection } from "mysql2/promise";
+import { createConnection } from "mysql2/promise";
 
 const deletePrediction = async (interaction: CommandInteraction) => {
   if (typeof interaction.member?.permissions === "string") return;
@@ -17,37 +17,38 @@ const deletePrediction = async (interaction: CommandInteraction) => {
 
   const connection = await createConnection(getDbOptions());
 
+  // Delete messages
   const [predictions] = await connection.execute(
-    "SELECT * FROM predictions WHERE id = ?",
+    `SELECT channelId, messageId FROM predictions WHERE id = ?`,
     [predictionId]
   );
-
-  if (!Array.isArray(predictions)) return connection.end();
-
+  if (!Array.isArray(predictions)) {
+    await interaction.reply({
+      content: "Error getting predictions",
+      ephemeral: true,
+    });
+    connection.end();
+    return;
+  }
   if (!predictions.length) {
     await interaction.reply({
       content: "Prediction not found",
       ephemeral: true,
     });
-    return connection.end();
+    connection.end();
+    return;
   }
 
-  const messageId = (predictions[0] as RowDataPacket).messageId;
+  const prediction = predictions[0] as any;
 
-  if (messageId !== "0") {
-    // Delete messages
-    const [messages] = await connection.execute(
-      `SELECT channelId, messageId prediction WHERE predictionId = ?`
-    );
-    for (const message of messages as any[]) {
-      const channel = (await interaction.guild?.channels.fetch(
-        message.channelId
-      )) as TextChannel;
-      if (!channel) continue;
-      const messageToDelete = await channel.messages.fetch(message.messageId);
-      await messageToDelete.delete();
-    }
-  }
+  const channelId = prediction.channelId;
+  const messageId = prediction.messageId;
+  const channel = (await interaction.guild?.channels.fetch(
+    channelId
+  )) as TextChannel;
+  if (!channel) return connection.end();
+
+  await channel.messages.delete(messageId);
 
   await connection.execute(`DELETE FROM predictions WHERE id = ?`, [
     predictionId,
