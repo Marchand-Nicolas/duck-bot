@@ -50,7 +50,7 @@ const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
     predictionId,
   ]);
 
-  const oldScores = await getEveryUsersScore();
+  const oldScores = await getEveryUsersScore(prediction.channelId);
 
   // Order predictions by price proximity
   const sortedPredictions = predictions.sort(
@@ -74,14 +74,15 @@ const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
         userPrediction.user_id,
         reward,
         userPrediction.prediction_id,
-        db
+        db,
+        prediction.channelId
       );
     if (pricePredicted !== computePrice(nextPrediction?.price)) rank++;
   }
 
   db.end();
 
-  const scores = await getEveryUsersScore();
+  const scores = await getEveryUsersScore(prediction.channelId);
   const keys = Object.keys(scores);
   const oldKeys = Object.keys(oldScores);
 
@@ -148,11 +149,12 @@ const addScore = async (
   userId: string,
   score: number,
   predictionId: number,
-  db: Connection
+  db: Connection,
+  channelId: string
 ) => {
   await db.execute(
-    "INSERT INTO user_scores (user_id, score, prediction_id) VALUES (?, ?, ?)",
-    [userId, score, predictionId]
+    "INSERT INTO user_scores (user_id, score, prediction_id, channel_id) VALUES (?, ?, ?, ?)",
+    [userId, score, predictionId, channelId]
   );
 };
 

@@ -1,11 +1,14 @@
 import { createConnection } from "mysql2/promise";
 import getDbOptions from "./getDbOptions";
 
-const getEveryUsersScore = async () => {
+const getEveryUsersScore = async (channelId: string) => {
   const db = await createConnection(getDbOptions());
 
   // Get user predictions
-  const [predictions] = await db.execute("SELECT * FROM user_scores");
+  const [predictions] = await db.execute(
+    "SELECT * FROM user_scores WHERE channel_id = ?",
+    [channelId]
+  );
 
   if (!Array.isArray(predictions)) {
     await db.end();
