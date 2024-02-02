@@ -33,7 +33,7 @@ const refresh = async (client: Client) => {
     if (!channelId || !messageId) continue;
     const channel = (await client.channels.fetch(channelId)) as TextChannel;
     if (!channel) continue;
-    const message = await channel.messages.fetch(messageId);
+    const message = await channel.messages.fetch(messageId).catch(() => null);
     if (!message) continue;
     // Check if prediction has started
     if (started === 0 && startDate.getTime() <= now.getTime() && ended === 0) {
