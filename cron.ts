@@ -3,6 +3,7 @@ import getDbOptions from "./utils/getDbOptions";
 import { createConnection } from "mysql2/promise";
 import refreshPredictionMessage from "./utils/refreshPredictionMessage";
 import computePrice from "./utils/computePrice";
+import orderPredictions from "./utils/orderPredictions";
 
 const startCron = (client: Client) => {
   refresh(client);
@@ -33,7 +34,9 @@ const refresh = async (client: Client) => {
     if (!channelId || !messageId) continue;
     const channel = (await client.channels.fetch(channelId)) as TextChannel;
     if (!channel) continue;
-    const message = await channel.messages.fetch(messageId).catch(() => null);
+    const message = await channel.messages
+      .fetch(messageId)
+      .catch((e) => console.log(e));
     if (!message) continue;
     // Check if prediction has started
     if (started === 0 && startDate.getTime() <= now.getTime() && ended === 0) {
@@ -51,8 +54,10 @@ const refresh = async (client: Client) => {
       let newMessageContent = `**~ PREDICTIONS FOR ${title.toUpperCase()} ARE NOW CLOSED ~**`;
       if (userPredictions.length) newMessageContent += "\n\n**Predictions:**\n";
 
-      for (let index = 0; index < userPredictions.length; index++) {
-        const element = userPredictions[index] as any;
+      const orderedPredictions = orderPredictions(userPredictions);
+
+      for (let index = 0; index < orderedPredictions.length; index++) {
+        const element = orderedPredictions[index] as any;
         newMessageContent += "\n";
         newMessageContent += `**${computePrice(element.price)} ETH** <@${
           element.user_id

@@ -48,7 +48,7 @@ const deletePrediction = async (interaction: CommandInteraction) => {
   )) as TextChannel;
   if (!channel) return connection.end();
 
-  await channel.messages.delete(messageId);
+  await channel.messages.delete(messageId).catch((e) => console.log(e));
 
   await connection.execute(`DELETE FROM predictions WHERE id = ?`, [
     predictionId,

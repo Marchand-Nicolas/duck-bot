@@ -10,7 +10,8 @@ const messageCreate = async (message: Message) => {
   );
   db.end();
   if (!Array.isArray(rows)) return;
-  if (!message.member?.permissions.has("ManageMessages")) message.delete();
+  if (!message.member?.permissions.has("ManageMessages"))
+    message.delete().catch((e) => console.log(e));
 };
 
 module.exports = messageCreate;

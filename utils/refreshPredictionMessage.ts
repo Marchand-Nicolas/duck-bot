@@ -2,6 +2,7 @@ import { Client, TextChannel } from "discord.js";
 import getDbOptions from "../utils/getDbOptions";
 import { createConnection } from "mysql2/promise";
 import computePrice from "./computePrice";
+import orderPredictions from "./orderPredictions";
 
 const refreshPredictionMessage = async (client: Client, channelId: string) => {
   const db = await createConnection(getDbOptions());
@@ -46,10 +47,7 @@ const refreshPredictionMessage = async (client: Client, channelId: string) => {
   if (userPredictions.length)
     newMessageContent += "\n\n**Current predictions:**\n";
 
-  // DESC
-  const orderedPredictions = userPredictions.sort(
-    (a: any, b: any) => computePrice(b.price) - computePrice(a.price)
-  );
+  const orderedPredictions = orderPredictions(userPredictions);
 
   for (let index = 0; index < orderedPredictions.length; index++) {
     const element = userPredictions[index] as any;
