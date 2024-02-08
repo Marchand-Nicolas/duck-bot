@@ -86,13 +86,13 @@ const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
   const keys = Object.keys(scores);
   const oldKeys = Object.keys(oldScores);
 
-  const order = (a: string, b: string) => {
+  const order = (a: string, b: string, scores: any) => {
     if (scores[b] === scores[a]) return 0;
     return scores[b] < scores[a] ? -1 : 1;
   };
 
-  const orderedOldKeys = oldKeys.sort(order);
-  const orderedKeys = keys.sort(order);
+  const orderedOldKeys = oldKeys.sort((a, b) => order(a, b, oldScores));
+  const orderedKeys = keys.sort((a, b) => order(a, b, scores));
 
   const upEmoji = "🔺";
   const sameEmoji = "▪️";
