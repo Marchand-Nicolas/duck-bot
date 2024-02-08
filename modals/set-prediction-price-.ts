@@ -87,9 +87,8 @@ const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
   const oldKeys = Object.keys(oldScores);
 
   const order = (a: string, b: string) => {
-    const aScore = parseInt(a.split(":")[1]);
-    const bScore = parseInt(b.split(":")[1]);
-    return bScore - aScore;
+    if (scores[b] === scores[a]) return 0;
+    return scores[b] < scores[a] ? -1 : 1;
   };
 
   const orderedOldKeys = oldKeys.sort(order);
