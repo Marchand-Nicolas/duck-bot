@@ -1,4 +1,4 @@
-import { ModalSubmitInteraction, TextChannel } from "discord.js";
+import { ModalSubmitInteraction } from "discord.js";
 import getDbOptions from "../utils/getDbOptions";
 import { Connection, createConnection } from "mysql2/promise";
 import computePrice from "../utils/computePrice";
