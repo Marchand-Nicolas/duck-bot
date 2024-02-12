@@ -58,13 +58,15 @@ const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
   );
 
   let rank = 0;
+  let decal = 0;
+  let currentDecal = 0;
   const rewards = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
   const modifiedUsers: Array<any> = [];
   for (let index = 0; index < sortedPredictions.length; index++) {
     const userPrediction = sortedPredictions[index] as any;
     const pricePredicted = computePrice(userPrediction.price);
     const nextPrediction = sortedPredictions[index + 1] as any;
-    const reward = rewards[rank] || 0;
+    const reward = rewards[rank + currentDecal] || 0;
     modifiedUsers.push({
       userId: userPrediction.user_id,
       reward,
@@ -77,7 +79,10 @@ const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
         db,
         prediction.channelId
       );
-    if (pricePredicted !== computePrice(nextPrediction?.price)) rank++;
+    if (pricePredicted !== computePrice(nextPrediction?.price)) {
+      rank++;
+      currentDecal = decal;
+    } else decal++;
   }
 
   db.end();
@@ -110,7 +115,9 @@ const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
                 : orderedOldKeys.indexOf(k) < index
                 ? downEmoji
                 : upEmoji
-            } **${index + 1}**. <@${k}>: **${scores[k]} points** ${
+            } **${
+              1 + orderedKeys.findIndex((key) => scores[key] === scores[k])
+            }**. <@${k}>: **${scores[k]} points** ${
               modifiedUsers.find((u) => u.userId === k)?.reward
                 ? "(+" +
                   modifiedUsers.find((u) => u.userId === k)?.reward.toString() +
