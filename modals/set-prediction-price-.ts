@@ -71,7 +71,7 @@ const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
       userId: userPrediction.user_id,
       reward,
     });
-    if (reward)
+    if (reward) {
       await addScore(
         userPrediction.user_id,
         reward,
@@ -79,10 +79,16 @@ const setPredictionPrice = async (interaction: ModalSubmitInteraction) => {
         db,
         prediction.channelId
       );
-    if (pricePredicted !== computePrice(nextPrediction?.price)) {
+    }
+    if (
+      Math.abs(pricePredicted - price) !==
+      Math.abs(nextPrediction?.price - price)
+    ) {
       rank++;
       currentDecal = decal;
-    } else decal++;
+    } else {
+      decal++;
+    }
   }
 
   db.end();
